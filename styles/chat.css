@@ -47,7 +47,7 @@
 
 .user-info span {
     flex: 1;
-    color: var(--dark-teal);
+    color: var(--new-violet);
     font-weight: 600;
     font-size: 14px;
 }
@@ -70,12 +70,14 @@
 }
 
 .room-item:hover {
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--new-violet);
+    color: var(--new-white);
     transform: translateX(4px);
 }
 
 .room-item.active {
-    background: white;
+    background: var(--new-white);
+    color: var(--new-brown);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
