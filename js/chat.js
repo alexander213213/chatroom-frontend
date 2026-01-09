@@ -254,6 +254,8 @@ async function selectRoom(room) {
     
     // Load messages
     await loadMessages(room.id);
+    await loadRoomFiles(room.id);
+    await loadRoomNotes(room.id);
 }
 
 async function loadMessages(roomId) {
@@ -745,6 +747,7 @@ function subscribeToRoom(roomId) {
     // Subscribe to notes
     stompClient.subscribe(`/topic/${roomId}/notes`, (message) => {
         const note = JSON.parse(message.body);
+        handleIncomingNote(note);
     });
 }
 

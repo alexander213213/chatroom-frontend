@@ -1,13 +1,7 @@
 // File management system
-let filesData = [
-    { name: 'RegistrationCertificate (4).pdf', size: '495.46 KB', type: 'pdf', category: 'Documents' },
-    { name: 'Online-Class-Agreement-Gonzales-.pdf', size: '297.07 KB', type: 'pdf', category: 'Documents' },
-    { name: 'Project-Demo.mp4', size: '125.34 MB', type: 'mp4', category: 'Video' },
-    { name: 'Profile-Photo.jpg', size: '2.45 MB', type: 'jpg', category: 'Images' },
-    { name: 'Screenshot.png', size: '856.23 KB', type: 'png', category: 'Images' }
-];
-
-let filteredFiles = [...filesData];
+let filesData = [];
+let filteredFiles = [];
+let notesData = [];
 
 // File type icon mapping
 const fileTypeIcons = {
@@ -27,7 +21,7 @@ const fileTypeIcons = {
     rar: '📦',
     mp3: '🎵',
     mp4: '🎬',
-    default: '📁'
+    default: '📎'
 };
 
 function getFileType(filename) {
@@ -55,6 +49,13 @@ function parseSize(sizeStr) {
     return value * (multipliers[unit] || 1);
 }
 
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+}
+
 function getFileCategory(filename) {
     const type = getFileType(filename);
     if (['pdf', 'doc', 'docx', 'txt', 'xls', 'xlsx', 'ppt', 'pptx'].includes(type)) return 'Documents';
@@ -63,6 +64,35 @@ function getFileCategory(filename) {
     if (['mp4'].includes(type)) return 'Video';
     if (['zip', 'rar'].includes(type)) return 'Archives';
     return 'Other';
+}
+
+async function loadRoomFiles(roomId) {
+    if (!roomId) {
+        filesData = [];
+        renderFilesList();
+        return;
+    }
+
+    try {
+        const response = await api.request(`/api/files/rooms/${roomId}/attachments`);
+        if (response.ok) {
+            const data = await response.json();
+            filesData = data.attachments.map(file => ({
+                name: file.filename,
+                size: formatFileSize(file.size),
+                type: getFileType(file.filename),
+                category: getFileCategory(file.filename),
+                downloadUrl: file.downloadUrl,
+                uploadedAt: file.uploadedAt,
+                contentType: file.contentType
+            }));
+            applyFiltersAndSort();
+        }
+    } catch (error) {
+        console.error('Error loading files:', error);
+        filesData = [];
+        renderFilesList();
+    }
 }
 
 function renderFilesList() {
@@ -124,17 +154,46 @@ function updateFileCount() {
     badge.textContent = `${count} file${count !== 1 ? 's' : ''}`;
 }
 
-function handleFileDownload(event, fileName) {
+async function handleFileDownload(event, fileName) {
     event.stopPropagation();
-    console.log(`Downloading: ${fileName}`);
-    handleFileClick(fileName);
+    if (!currentRoom) return;
+    
+    try {
+        const file = filesData.find(f => f.name === fileName);
+        if (file && file.downloadUrl) {
+            // Create temporary link and trigger download
+            const a = document.createElement('a');
+            a.href = file.downloadUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+    } catch (error) {
+        console.error('Error downloading file:', error);
+        alert('Failed to download file');
+    }
 }
 
-function handleFileDelete(event, fileName) {
+async function handleFileDelete(event, fileName) {
     event.stopPropagation();
+    if (!currentRoom) return;
+    
     if (confirm(`Delete "${fileName}"?`)) {
-        filesData = filesData.filter(f => f.name !== fileName);
-        applyFiltersAndSort();
+        try {
+            const response = await api.request(`/api/files/rooms/${currentRoom.id}/attachments/${encodeURIComponent(fileName)}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                await loadRoomFiles(currentRoom.id);
+            } else {
+                alert('Failed to delete file');
+            }
+        } catch (error) {
+            console.error('Error deleting file:', error);
+            alert('Failed to delete file');
+        }
     }
 }
 
@@ -167,16 +226,188 @@ function applyFiltersAndSort() {
     renderFilesList();
 }
 
-function handleFileUpload(files) {
-    Array.from(files).forEach(file => {
-        filesData.push({
-            name: file.name,
-            size: (file.size / 1024).toFixed(2) + ' KB',
-            type: getFileType(file.name),
-            category: getFileCategory(file.name)
-        });
+async function handleFileUpload(files) {
+    if (!currentRoom) {
+        alert('Please select a room first');
+        return;
+    }
+
+    for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch(`${CONFIG.API_BASE}/api/files/rooms/${currentRoom.id}/attachments`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            alert(`Failed to upload ${file.name}`);
+        }
+    }
+
+    // Reload files after upload
+    await loadRoomFiles(currentRoom.id);
+}
+
+// Notes Management
+async function loadRoomNotes(roomId) {
+    if (!roomId) {
+        notesData = [];
+        renderNotesList();
+        return;
+    }
+
+    try {
+        const response = await api.getNotes(roomId);
+        if (response.ok) {
+            notesData = await response.json();
+            renderNotesList();
+        }
+    } catch (error) {
+        console.error('Error loading notes:', error);
+        notesData = [];
+        renderNotesList();
+    }
+}
+
+function renderNotesList() {
+    const userNotesContainer = document.querySelector('.user_notes');
+    if (!userNotesContainer) return;
+
+    // Group notes by username
+    const notesByUser = {};
+    notesData.forEach(note => {
+        if (!notesByUser[note.username]) {
+            notesByUser[note.username] = [];
+        }
+        notesByUser[note.username].push(note);
     });
-    applyFiltersAndSort();
+
+    // Clear existing member note items (except the template structure)
+    const existingItems = userNotesContainer.querySelectorAll('.member-note-item');
+    existingItems.forEach(item => item.remove());
+
+    // Render current user's notes first
+    if (currentUsername && notesByUser[currentUsername]) {
+        const myItem = createMemberNoteItem(currentUsername, notesByUser[currentUsername], true);
+        userNotesContainer.appendChild(myItem);
+    }
+
+    // Render other users' notes
+    Object.keys(notesByUser).forEach(username => {
+        if (username !== currentUsername) {
+            const item = createMemberNoteItem(username, notesByUser[username], false);
+            userNotesContainer.appendChild(item);
+        }
+    });
+}
+
+function createMemberNoteItem(username, notes, isCurrentUser) {
+    const item = document.createElement('div');
+    item.className = 'member-note-item' + (isCurrentUser ? ' current-user-item active' : '');
+
+    const header = document.createElement('div');
+    header.className = 'member-header';
+    header.onclick = function() { toggleMemberNotes(this); };
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'member-name';
+    nameSpan.textContent = isCurrentUser ? 'Me (You)' : username;
+
+    const headerActions = document.createElement('div');
+    headerActions.className = 'header-actions';
+
+    if (isCurrentUser) {
+        const addBtn = document.createElement('button');
+        addBtn.className = 'add-note-btn';
+        addBtn.textContent = '+';
+        addBtn.title = 'Save note';
+        addBtn.onclick = function(e) { saveCurrentNote(e); };
+        headerActions.appendChild(addBtn);
+    }
+
+    const chevron = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    chevron.setAttribute('class', 'chevron');
+    chevron.setAttribute('width', '16');
+    chevron.setAttribute('height', '16');
+    chevron.setAttribute('viewBox', '0 0 24 24');
+    chevron.setAttribute('fill', 'none');
+    chevron.setAttribute('stroke', 'currentColor');
+    chevron.setAttribute('stroke-width', '2');
+    const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    polyline.setAttribute('points', '6 9 12 15 18 9');
+    chevron.appendChild(polyline);
+    headerActions.appendChild(chevron);
+
+    header.appendChild(nameSpan);
+    header.appendChild(headerActions);
+
+    const notesList = document.createElement('div');
+    notesList.className = 'member-notes-list';
+    if (isCurrentUser) {
+        notesList.id = 'myNotesList';
+    }
+
+    notes.forEach(note => {
+        const noteEntry = createNoteEntry(note, isCurrentUser);
+        notesList.appendChild(noteEntry);
+    });
+
+    item.appendChild(header);
+    item.appendChild(notesList);
+
+    return item;
+}
+
+function createNoteEntry(note, isEditable) {
+    const entry = document.createElement('div');
+    entry.className = 'note-entry' + (isEditable ? ' user-note-entry' : '');
+    entry.dataset.noteId = note.id;
+
+    const textSpan = document.createElement('span');
+    textSpan.className = 'note-text';
+    textSpan.textContent = note.content;
+
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'note-actions';
+
+    const viewBtn = document.createElement('button');
+    viewBtn.className = 'action-btn view';
+    viewBtn.textContent = 'o';
+    viewBtn.title = 'View';
+    viewBtn.onclick = function() { viewNote(this); };
+    actionsDiv.appendChild(viewBtn);
+
+    if (isEditable) {
+        const editBtn = document.createElement('button');
+        editBtn.className = 'action-btn edit';
+        editBtn.textContent = '^';
+        editBtn.title = 'Edit';
+        editBtn.onclick = function() { editNote(this); };
+        actionsDiv.appendChild(editBtn);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'action-btn delete';
+        deleteBtn.textContent = 'x';
+        deleteBtn.title = 'Delete';
+        deleteBtn.onclick = function() { deleteNote(this); };
+        actionsDiv.appendChild(deleteBtn);
+    }
+
+    entry.appendChild(textSpan);
+    entry.appendChild(actionsDiv);
+
+    return entry;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -218,75 +449,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial render
     renderFilesList();
+    renderNotesList();
 });
 
-//Toggle element of members
+// Toggle element of members
 function toggleMemberNotes(headerElement) {
     const item = headerElement.closest('.member-note-item');
     item.classList.toggle('active');
 }
 
-//Used for saving and creating new note after clicking plus button, buttons on note entry, note viewing modal, etc. - used Ai for help not so confident if it'll work  
+// Note management functions
 let currentEditElement = null;
 
-function saveCurrentNote(event) {
+async function saveCurrentNote(event) {
     event.stopPropagation();
 
     const textarea = document.querySelector('.note_taker');
     const noteText = textarea.value.trim();
     const saveBtn = document.querySelector('.add-note-btn');
 
-    if (!noteText) return;
+    if (!noteText || !currentRoom || !stompClient) return;
 
     if (currentEditElement) {
-        const textSpan = currentEditElement.querySelector('.note-text');
-        textSpan.textContent = noteText;
+        // Update existing note
+        const noteId = parseInt(currentEditElement.dataset.noteId);
         
-        currentEditElement.style.backgroundColor = '#e8f8f5';
-        setTimeout(() => currentEditElement.style.backgroundColor = 'white', 500);
+        stompClient.send(`/app/rooms/${currentRoom.id}/note`, {}, JSON.stringify({
+            id: noteId,
+            roomId: currentRoom.id,
+            username: currentUsername,
+            content: noteText,
+            type: 'UPDATE'
+        }));
 
         currentEditElement = null;
-        
         saveBtn.textContent = '+';
         saveBtn.title = 'Save Note';
-        saveBtn.classList.remove('btn-warning');
-
     } else {
-
-        const noteList = document.getElementById('myNotesList');
-        const parentItem = noteList.closest('.member-note-item');
-
-        const entryDiv = document.createElement('div');
-        entryDiv.className = 'note-entry user-note-entry';
-
-        const textSpan = document.createElement('span');
-        textSpan.className = 'note-text';
-        textSpan.textContent = noteText;
-
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'note-actions';
-
-        const createBtn = (cls, icon, title, action) => {
-            const btn = document.createElement('button');
-            btn.className = `action-btn ${cls}`;
-            btn.textContent = icon;
-            btn.title = title;
-            btn.onclick = action;
-            return btn;
-        };
-
-        actionsDiv.appendChild(createBtn('view', 'o', 'View', function() { viewNote(this) }));
-        actionsDiv.appendChild(createBtn('edit', '^', 'Edit', function() { editNote(this) }));
-        actionsDiv.appendChild(createBtn('delete', 'x', 'Delete', function() { deleteNote(this) }));
-
-        entryDiv.appendChild(textSpan);
-        entryDiv.appendChild(actionsDiv);
-
-        noteList.prepend(entryDiv);
-        
-        if (!parentItem.classList.contains('active')) {
-            parentItem.classList.add('active');
-        }
+        // Create new note
+        stompClient.send(`/app/rooms/${currentRoom.id}/note`, {}, JSON.stringify({
+            roomId: currentRoom.id,
+            username: currentUsername,
+            content: noteText,
+            type: 'POST'
+        }));
     }
 
     textarea.value = '';
@@ -304,12 +510,17 @@ function closeNoteModal() {
     document.getElementById('noteViewModal').style.display = 'none';
 }
 
-document.getElementById('noteViewModal').addEventListener('click', function(e) {
-    if (e.target === this) closeNoteModal();
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('noteViewModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) closeNoteModal();
+        });
+    }
 });
 
 function editNote(btnElement) {
-const entry = btnElement.closest('.note-entry');
+    const entry = btnElement.closest('.note-entry');
     const text = entry.querySelector('.note-text').textContent;
     const textarea = document.querySelector('.note_taker');
     const saveBtn = document.querySelector('.add-note-btn');
@@ -325,27 +536,51 @@ const entry = btnElement.closest('.note-entry');
     textarea.scrollTop = 0;
 }
 
-function deleteNote(btnElement) {
-if(confirm('Are you sure you want to delete this note?')) {
-        const entry = btnElement.closest('.note-entry');
+async function deleteNote(btnElement) {
+    if (!confirm('Are you sure you want to delete this note?')) return;
+    
+    const entry = btnElement.closest('.note-entry');
+    const noteId = parseInt(entry.dataset.noteId);
 
-        if (currentEditElement === entry) {
-            currentEditElement = null;
-            document.querySelector('.note_taker').value = '';
-            document.querySelector('.add-note-btn').textContent = '+';
-        }
+    if (!currentRoom || !stompClient) return;
 
-        entry.style.opacity = '0';
-        setTimeout(() => {
-            entry.remove();
-        }, 200);
+    if (currentEditElement === entry) {
+        currentEditElement = null;
+        document.querySelector('.note_taker').value = '';
+        document.querySelector('.add-note-btn').textContent = '+';
     }
+
+    stompClient.send(`/app/rooms/${currentRoom.id}/note`, {}, JSON.stringify({
+        id: noteId,
+        type: 'DELETE'
+    }));
 }
-//hanggang dito siya 
 
 function handleFileClick(fileName) {
     console.log(`File clicked: ${fileName}`);
-    // TODO: Implement file download functionality
-    // This could call an API to fetch the file from the backend
-    // or trigger a download if the file URL is available
+    handleFileDownload({ stopPropagation: () => {} }, fileName);
+}
+
+// Handle incoming notes from WebSocket
+function handleIncomingNote(note) {
+    if (!currentRoom || note.roomId != currentRoom.id) return;
+
+    if (note.type === 'POST') {
+        // Add new note
+        const exists = notesData.find(n => n.id === note.id);
+        if (!exists) {
+            notesData.push(note);
+        }
+    } else if (note.type === 'UPDATE') {
+        // Update existing note
+        const index = notesData.findIndex(n => n.id === note.id);
+        if (index !== -1) {
+            notesData[index] = note;
+        }
+    } else if (note.type === 'DELETE') {
+        // Remove note
+        notesData = notesData.filter(n => n.id !== note.id);
+    }
+
+    renderNotesList();
 }
