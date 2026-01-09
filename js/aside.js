@@ -128,16 +128,15 @@ function renderFilesList() {
         categories[category].forEach(file => {
             const fileItem = document.createElement('div');
             fileItem.className = 'file-item';
-            
-            // Make the entire file item clickable
-            const fileNameEscaped = file.name.replace(/'/g, "\\'");
             fileItem.style.cursor = 'pointer';
-            fileItem.onclick = function(e) {
+            
+            // Add click handler to the div element
+            fileItem.addEventListener('click', function(e) {
                 // Only trigger if not clicking on action buttons
                 if (!e.target.closest('.file-action-btn')) {
-                    handleFileDownload(e, file.name);
+                    handleFileClick(file.name);
                 }
-            };
+            });
             
             fileItem.innerHTML = `
                 <div class="file-icon">${getFileIcon(file.name)}</div>
@@ -146,14 +145,14 @@ function renderFilesList() {
                     <div class="file-size">${file.size}</div>
                 </div>
                 <div class="file-actions">
-                    <button class="file-action-btn download" title="Download" onclick="event.stopPropagation(); handleFileDownload(event, '${fileNameEscaped}')">
+                    <button class="file-action-btn download" title="Download">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="7 10 12 15 17 10"></polyline>
                             <line x1="12" y1="15" x2="12" y2="3"></line>
                         </svg>
                     </button>
-                    <button class="file-action-btn delete" title="Delete" onclick="event.stopPropagation(); handleFileDelete(event, '${fileNameEscaped}')">
+                    <button class="file-action-btn delete" title="Delete">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="3 6 5 6 21 6"></polyline>
                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -161,6 +160,21 @@ function renderFilesList() {
                     </button>
                 </div>
             `;
+            
+            // Add event listeners to action buttons after innerHTML is set
+            const downloadBtn = fileItem.querySelector('.file-action-btn.download');
+            const deleteBtn = fileItem.querySelector('.file-action-btn.delete');
+            
+            downloadBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                handleFileDownload(e, file.name);
+            });
+            
+            deleteBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                handleFileDelete(e, file.name);
+            });
+            
             categoryDiv.appendChild(fileItem);
         });
 
@@ -678,8 +692,23 @@ async function deleteNote(btnElement) {
 }
 
 function handleFileClick(fileName) {
-    console.log(`File clicked: ${fileName}`);
-    handleFileDownload({ stopPropagation: () => {} }, fileName);
+    if (!currentRoom) return;
+    
+    const file = filesData.find(f => f.name === fileName);
+    if (!file) return;
+    
+    // Check if it's an image - open in modal instead of downloading
+    if (file.contentType && file.contentType.startsWith('image/')) {
+        openImageModal(file.downloadUrl, fileName);
+    } else if (file.downloadUrl) {
+        // Download the file
+        const a = document.createElement('a');
+        a.href = file.downloadUrl;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
 }
 
 // Handle incoming notes from WebSocket
