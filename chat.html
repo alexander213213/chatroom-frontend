@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat - Chatroom</title>
-    <link rel="stylesheet" href="common.css">
-    <link rel="stylesheet" href="chat.css">
+    <link rel="stylesheet" href="styles/common.css">
+    <link rel="stylesheet" href="styles/chat.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 </head>
@@ -100,23 +100,51 @@
        <aside class="files-aside" id="filesAside">
             <div class="files-header">
                 <div class="tabs-container">
-                    <button id="filesTabBtn" class="tab-btn active" title="Files">
-                        Files
-                    </button>
-                    <button id="notesTabBtn" class="tab-btn" title="Notes">
+                    <button id="notesTabBtn" class="tab-btn active" title="Notes">
                         Notes
                     </button>
+                    <button id="filesTabBtn" class="tab-btn" title="Files">
+                        Files
+                    </button>
                 </div>
-                <button id="toggleFilesBtn" class="files-toggle-btn" title="Toggle Files">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-3 7h3m-3 4h3"></path>
-                    </svg>
-                </button>
+            </div>
+            <div class="container" id="noteContainer" style="display: none">
+                <div class="writing">
+                    <textarea class="note_taker" placeholder="Write your personal notes here..."></textarea>
+                </div>
+
+                <div class="user_notes">
+                    <h4 class="section-title">Member Notes</h4>
+                    
+                    <div class="member-note-item">
+                        <div class="member-header" onclick="toggleMemberNotes(this)">
+                            <span class="member-name">User_Jeongyeon</span>
+                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="member-notes-list">
+                            <div class="note-entry">Meeting minutes from Tuesday</div>
+                            <div class="note-entry">Link to design assets</div>
+                        </div>
+                    </div>
+
+                    <div class="member-note-item">
+                        <div class="member-header" onclick="toggleMemberNotes(this)">
+                            <span class="member-name">Nayeon</span>
+                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="member-notes-list">
+                            <div class="note-entry">Project requirements</div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="container" id="filesContainer">
                 <!-- Files will be populated here -->
-            </div>
-            <div class="container" id="noteContainer" style="display: none">
+                <p>No files yet...</p>
             </div>
         </aside>
     </div>
@@ -170,5 +198,6 @@
     <script src="js/config.js"></script>
     <script src="js/api.js"></script>
     <script src="js/chat.js"></script>
+    <script src="js/aside.js"></script>
 </body>
 </html>
