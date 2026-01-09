@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat - Chatroom</title>
-    <link rel="stylesheet" href="common.css">
-    <link rel="stylesheet" href="chat.css">
+    <link rel="stylesheet" href="styles/common.css">
+    <link rel="stylesheet" href="styles/chat.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 </head>
@@ -108,41 +108,70 @@
                     </button>
                 </div>
             </div>
-            <div class="container" id="noteContainer" style="display: none">
+            <div class="container" id="noteContainer">
                 <div class="writing">
                     <textarea class="note_taker" placeholder="Write your personal notes here..."></textarea>
                 </div>
 
                 <div class="user_notes">
                     <h4 class="section-title">Member Notes</h4>
+
+                    <div class="member-note-item current-user-item active">
+                        <div class="member-header" onclick="toggleMemberNotes(this)">
+                            <span class="member-name">Me (You)</span>
+                            <div class="header-actions">
+                                <button class="add-note-btn" onclick="saveCurrentNote(event)" title="Save note">+</button>
+                                <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </div>
+                        </div>
+                        
+                        <div class="member-notes-list" id="myNotesList">
+                            <div class="note-entry user-note-entry">
+                                <span class="note-text">Yawerz</span>
+                                <div class="note-actions">
+                                    <button class="action-btn view" onclick="viewNote(this)" title="View">o</button>
+                                    <button class="action-btn edit" onclick="editNote(this)" title="Edit">^</button>
+                                    <button class="action-btn delete" onclick="deleteNote(this)" title="Delete">x</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div class="member-note-item">
                         <div class="member-header" onclick="toggleMemberNotes(this)">
                             <span class="member-name">User_Jeongyeon</span>
-                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
+                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </div>
                         <div class="member-notes-list">
-                            <div class="note-entry">Meeting minutes from Tuesday</div>
-                            <div class="note-entry">Link to design assets</div>
+                            <div class="note-entry">
+                                <span class="note-text">Meeting minutes from Tuesday </span>
+                                <div class="note-actions">
+                                    <button class="action-btn view" onclick="viewNote(this)" title="View">o</button>
+                                    <button class="action-btn edit" onclick="editNote(this)" title="Edit">^</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <div class="member-note-item">
                         <div class="member-header" onclick="toggleMemberNotes(this)">
                             <span class="member-name">Nayeon</span>
-                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
+                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </div>
                         <div class="member-notes-list">
-                            <div class="note-entry">Project requirements</div>
+                            <div class="note-entry">
+                                <span class="note-text">POP POP POP POP POP POP POP </span>
+                                <div class="note-actions">
+                                    <button class="action-btn view" onclick="viewNote(this)" title="View">o</button>
+                                    <button class="action-btn edit" onclick="editNote(this)" title="Edit">^</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="container" id="filesContainer">
+
+            <div class="container" id="filesContainer"  style="display: none">
                 <!-- Files will be populated here -->
                 <div class="file-item">
                     <div class="file-icon">📄</div>
@@ -161,6 +190,17 @@
                 </div>
             </div>
         </aside>
+    </div>
+
+    <!-- Note View Modal -->
+    <div id="noteViewModal" class="note-modal" style="display: none;">
+        <div class="note-modal-content">
+            <div class="note-modal-header">
+                <h4>Note Details</h4>
+                <button class="icon-btn-small" onclick="closeNoteModal()" title="Close">×</button>
+            </div>
+            <div class="note-modal-body" id="noteModalText"></div>
+        </div>
     </div>
     
     <!-- Create Room Modal -->
