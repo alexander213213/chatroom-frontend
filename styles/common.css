@@ -18,6 +18,7 @@
     --new-green: #b0eb93;
     --new-light-green: #E9F59D;
     --new-dark-green: #87a889;
+    --new-grey: #d9c8bf; 
 }
 
 @font-face {
@@ -81,7 +82,7 @@ body {
     cursor: pointer;
     padding: 8px;
     border-radius: 8px;
-    color: var(--medium-teal);
+    color: var(--new-violet);
     transition: all 0.3s;
     display: flex;
     align-items: center;
@@ -89,8 +90,8 @@ body {
 }
 
 .icon-btn:hover {
-    background: var(--cream);
-    color: var(--dark-teal);
+    background: var(--new-white);
+    color: var(--new-brown);
 }
 
 .icon-btn-small {
