@@ -7,7 +7,7 @@
 }
 
 .auth-box {
-    background: white;
+    background: var(--new-peach);
     padding: 40px;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
@@ -16,13 +16,13 @@
 }
 
 .auth-box h1 {
-    color: var(--dark-teal);
+    color: var(--new-violet);
     margin-bottom: 10px;
     font-size: 32px;
 }
 
 .auth-box p {
-    color: var(--medium-teal);
+    color: var(--new-violet);
     margin-bottom: 30px;
     font-size: 14px;
 }
