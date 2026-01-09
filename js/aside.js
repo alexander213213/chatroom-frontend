@@ -188,7 +188,7 @@ function renderFilesList() {
             // Add click handler to the file item
             fileItem.addEventListener('click', function(e) {
                 console.log('File item clicked:', file.name);
-                // Only trigger if not clicking on action buttons
+                // Only trigger if not clicking on action buttonsevent
                 if (!e.target.closest('.file-action-btn')) {
                     handleFileClick(file.name);
                 }
@@ -727,7 +727,7 @@ async function deleteNote(btnElement) {
 }
 
 function handleFileClick(fileName) {
-    if (!currentRoom) return;
+    // if (!currentRoom) return;
     
     const file = filesData.find(f => f.name === fileName);
     if (!file) return;
