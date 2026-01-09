@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat - Chatroom</title>
-    <link rel="stylesheet" href="styles/common.css">
-    <link rel="stylesheet" href="styles/chat.css">
+    <link rel="stylesheet" href="style/common.css">
+    <link rel="stylesheet" href="style/chat.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 </head>
@@ -78,12 +78,26 @@
                     <span id="replyText"></span>
                     <button id="cancelReply" class="icon-btn-small">×</button>
                 </div>
+
+                <!-- File Preview Area -->
+                <div class="message-file-preview" id="messageFilePreview" style="display: none;">
+                    <div class="preview-files" id="previewFiles"></div>
+                    <button class="btn-clear-files" onclick="clearMessageFiles()">Clear</button>
+                </div>
                 
-                <div class="message-input-wrapper">
+                <div class="message-input-wrapper" id="messageInputWrapper">
+                    <label for="chatFileUploadInput" class="file-upload-btn" title="Upload File">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                    </label>
+                    <input type="file" id="chatFileUploadInput" style="display: none;" multiple>
                     <input 
                         type="text" 
                         id="messageInput" 
-                        placeholder="Type a message..." 
+                        placeholder="Type a message or drag files here..." 
                         autocomplete="off"
                     >
                     <button id="sendBtn" class="btn-send">
@@ -171,22 +185,25 @@
                 </div>
             </div>
 
-            <div class="container" id="filesContainer"  style="display: none">
-                <!-- Files will be populated here -->
-                <div class="file-item">
-                    <div class="file-icon">📄</div>
-                    <div class="file-info">
-                        <div class="file-name">RegistrationCertificate (4).pdf</div>
-                        <div class="file-size">495.46 KB</div>
+            <div class="container" id="filesContainer" style="display: none">
+                <!-- Files Controls -->
+                <div class="files-controls">
+                    <div class="files-control-top">
+                        <input type="text" id="fileSearchInput" placeholder="Search files..." class="file-search">
+                        <select id="fileSortSelect" class="file-sort">
+                            <option value="name">Sort by Name</option>
+                            <option value="size">Sort by Size</option>
+                            <option value="type">Sort by Type</option>
+                        </select>
+                    </div>
+                    <div class="files-control-bottom">
+                        <span class="file-count-badge" id="fileCountBadge">0 files</span>
                     </div>
                 </div>
 
-                <div class="file-item">
-                    <div class="file-icon">📄</div>
-                    <div class="file-info">
-                        <div class="file-name">Online-Class-Agreement-Gonzales-.pdf</div>
-                        <div class="file-size">297.07 KB</div>
-                    </div>
+                <!-- File Categories -->
+                <div class="files-list" id="filesList">
+                    <!-- Files grouped by category will be populated here -->
                 </div>
             </div>
         </aside>
@@ -250,7 +267,7 @@
     </div>
     
     <script src="js/config.js"></script>
-    <script src="js/api.js"></script>
+    <script src="js/sapi.js"></script>
     <script src="js/chat.js"></script>
     <script src="js/aside.js"></script>
 </body>
