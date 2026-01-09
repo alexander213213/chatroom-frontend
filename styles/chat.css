@@ -152,7 +152,7 @@
 
 .message-username {
     font-weight: 600;
-    color: var(--teal);
+    color: var(--new-violet);
     font-size: 14px;
 }
 
@@ -209,18 +209,18 @@
 }
 
 .reaction:hover {
-    background: var(--light-green);
+    background: var(--new-peach);
     transform: scale(1.05);
 }
 
 .reaction.user-reacted {
-    background: var(--light-green);
-    border: 1px solid var(--teal);
+    background: var(--new-peach);
+    border: 1px solid var(--new-brown);
 }
 
 .reaction-count {
     font-size: 12px;
-    color: var(--dark-teal);
+    color: var(--new-brown);
     font-weight: 600;
 }
 
@@ -267,14 +267,14 @@
 
 #messageInput:focus {
     outline: none;
-    border-color: var(--teal);
+    border-color: var(--new-brown);
 }
 
 .btn-send {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--teal), #6BB8AF);
+    background: var(--new-brown);
     border: none;
     color: white;
     cursor: pointer;
@@ -286,7 +286,7 @@
 
 .btn-send:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(126, 205, 196, 0.4);
+    box-shadow: var(--new-violet);
 }
 
 .members-list {
@@ -347,12 +347,12 @@
 .rooms-list::-webkit-scrollbar-thumb,
 .messages-container::-webkit-scrollbar-thumb,
 .members-list::-webkit-scrollbar-thumb {
-    background: rgba(126, 205, 196, 0.3);
+    background: var(--new-brown);
     border-radius: 10px;
 }
 
 .rooms-list::-webkit-scrollbar-thumb:hover,
 .messages-container::-webkit-scrollbar-thumb:hover,
 .members-list::-webkit-scrollbar-thumb:hover {
-    background: rgba(126, 205, 196, 0.5);
+    background: var(--new-brown);
 }
