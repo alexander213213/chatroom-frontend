@@ -182,7 +182,7 @@
 .message-reply-preview {
     padding: 8px 12px;
     background: var(--cream);
-    border-left: 3px solid var(--teal);
+    border-left: 3px solid var(--new-orange);
     border-radius: 6px;
     margin-bottom: 8px;
     font-size: 13px;
