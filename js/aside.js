@@ -130,47 +130,79 @@ function renderFilesList() {
             fileItem.className = 'file-item';
             fileItem.style.cursor = 'pointer';
             
-            // Add click handler to the div element
+            // Create file icon
+            const fileIcon = document.createElement('div');
+            fileIcon.className = 'file-icon';
+            fileIcon.textContent = getFileIcon(file.name);
+            
+            // Create file info
+            const fileInfo = document.createElement('div');
+            fileInfo.className = 'file-info';
+            
+            const fileName = document.createElement('div');
+            fileName.className = 'file-name';
+            fileName.textContent = file.name;
+            
+            const fileSize = document.createElement('div');
+            fileSize.className = 'file-size';
+            fileSize.textContent = file.size;
+            
+            fileInfo.appendChild(fileName);
+            fileInfo.appendChild(fileSize);
+            
+            // Create actions container
+            const fileActions = document.createElement('div');
+            fileActions.className = 'file-actions';
+            
+            // Download button
+            const downloadBtn = document.createElement('button');
+            downloadBtn.className = 'file-action-btn download';
+            downloadBtn.title = 'Download';
+            downloadBtn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+            `;
+            
+            // Delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'file-action-btn delete';
+            deleteBtn.title = 'Delete';
+            deleteBtn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            `;
+            
+            fileActions.appendChild(downloadBtn);
+            fileActions.appendChild(deleteBtn);
+            
+            // Assemble file item
+            fileItem.appendChild(fileIcon);
+            fileItem.appendChild(fileInfo);
+            fileItem.appendChild(fileActions);
+            
+            // Add click handler to the file item
             fileItem.addEventListener('click', function(e) {
+                console.log('File item clicked:', file.name);
                 // Only trigger if not clicking on action buttons
                 if (!e.target.closest('.file-action-btn')) {
                     handleFileClick(file.name);
                 }
             });
             
-            fileItem.innerHTML = `
-                <div class="file-icon">${getFileIcon(file.name)}</div>
-                <div class="file-info">
-                    <div class="file-name">${file.name}</div>
-                    <div class="file-size">${file.size}</div>
-                </div>
-                <div class="file-actions">
-                    <button class="file-action-btn download" title="Download">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="7 10 12 15 17 10"></polyline>
-                            <line x1="12" y1="15" x2="12" y2="3"></line>
-                        </svg>
-                    </button>
-                    <button class="file-action-btn delete" title="Delete">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        </svg>
-                    </button>
-                </div>
-            `;
-            
-            // Add event listeners to action buttons after innerHTML is set
-            const downloadBtn = fileItem.querySelector('.file-action-btn.download');
-            const deleteBtn = fileItem.querySelector('.file-action-btn.delete');
-            
+            // Add event listeners to action buttons
             downloadBtn.addEventListener('click', function(e) {
+                console.log('Download button clicked:', file.name);
                 e.stopPropagation();
                 handleFileDownload(e, file.name);
             });
             
             deleteBtn.addEventListener('click', function(e) {
+                console.log('Delete button clicked:', file.name);
                 e.stopPropagation();
                 handleFileDelete(e, file.name);
             });
@@ -578,6 +610,9 @@ document.addEventListener('DOMContentLoaded', () => {
     renderFilesList();
     renderNotesList();
 });
+
+// Global function to handle file uploads from chat.js
+window.handleAsideFileUpload = handleFileUpload;
 
 // Toggle element of members
 function toggleMemberNotes(headerElement) {
