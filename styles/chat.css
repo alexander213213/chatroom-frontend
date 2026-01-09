@@ -7,7 +7,8 @@
 /* Sidebar */
 .sidebar {
     width: 300px;
-    background: linear-gradient(180deg, var(--sage) 0%, var(--light-green) 100%);
+    /* background: linear-gradient(180deg, var(--sage) 0%, var(--light-green) 100%); */
+    background: linear-gradient(135deg, var(--new-orange) 0%, var(--new-brown) 100%);
     display: flex;
     flex-direction: column;
     border-right: 1px solid rgba(255, 255, 255, 0.3);
@@ -22,7 +23,7 @@
 }
 
 .sidebar-header h2 {
-    color: var(--dark-teal);
+    color: var(--new-violet);
     font-size: 20px;
 }
 

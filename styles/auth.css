@@ -9,6 +9,7 @@
 .auth-box {
     background: var(--new-peach);
     padding: 40px;
+    border: 2px solid var(--new-brown);
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     width: 100%;
@@ -34,18 +35,18 @@
 .auth-footer {
     text-align: center;
     padding-top: 20px;
-    border-top: 1px solid var(--light-gray);
+    border-top: 1px solid var(--new-brown);
 }
 
 .auth-footer p {
-    color: var(--medium-teal);
+    color: var(--new-violet);
     font-size: 14px;
 }
 
 .auth-footer a {
-    color: var(--teal);
+    color: var(--new-black);
     text-decoration: none;
-    font-weight: 600;
+    font-weight: 550;
 }
 
 .auth-footer a:hover {
