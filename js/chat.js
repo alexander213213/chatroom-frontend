@@ -83,6 +83,35 @@ function setupEventListeners() {
     // Cancel reply
     document.getElementById('cancelReply').addEventListener('click', cancelReply);
     
+    // Chat File Upload
+    const chatFileUploadInput = document.getElementById('chatFileUploadInput');
+    if (chatFileUploadInput) {
+        chatFileUploadInput.addEventListener('change', (e) => {
+            handleChatFileUpload(e.target.files);
+            e.target.value = '';
+        });
+    }
+    
+    // Chat Drag & Drop on Input Wrapper
+    const messageInputWrapper = document.getElementById('messageInputWrapper');
+    if (messageInputWrapper) {
+        messageInputWrapper.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            messageInputWrapper.classList.add('dragover');
+        });
+        
+        messageInputWrapper.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            messageInputWrapper.classList.remove('dragover');
+        });
+        
+        messageInputWrapper.addEventListener('drop', (e) => {
+            e.preventDefault();
+            messageInputWrapper.classList.remove('dragover');
+            handleChatFileUpload(e.dataTransfer.files);
+        });
+    }
+    
     // Modal close buttons
     document.querySelectorAll('.modal-close').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -796,4 +825,47 @@ function handleTypingIndicator(data) {
     } else {
         indicator.style.display = 'none';
     }
+}
+
+// Chat File Upload System
+let chatMessageFiles = [];
+
+function handleChatFileUpload(files) {
+    Array.from(files).forEach(file => {
+        chatMessageFiles.push({
+            name: file.name,
+            size: (file.size / 1024).toFixed(2) + ' KB',
+            type: file.type
+        });
+    });
+    updateChatFilePreview();
+}
+
+function updateChatFilePreview() {
+    const filePreview = document.getElementById('messageFilePreview');
+    const previewFiles = document.getElementById('previewFiles');
+    
+    if (chatMessageFiles.length === 0) {
+        filePreview.style.display = 'none';
+        return;
+    }
+    
+    filePreview.style.display = 'flex';
+    previewFiles.innerHTML = chatMessageFiles.map((file, index) => `
+        <div class="preview-file">
+            <span class="preview-file-name" title="${file.name}">${file.name}</span>
+            <button style="background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 14px; padding: 0;" 
+                    onclick="removeChatFile(${index})" title="Remove">✕</button>
+        </div>
+    `).join('');
+}
+
+function removeChatFile(index) {
+    chatMessageFiles.splice(index, 1);
+    updateChatFilePreview();
+}
+
+function clearMessageFiles() {
+    chatMessageFiles = [];
+    updateChatFilePreview();
 }
