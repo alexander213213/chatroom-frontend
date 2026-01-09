@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat - Chatroom</title>
-    <link rel="stylesheet" href="styles/common.css">
-    <link rel="stylesheet" href="styles/chat.css">
+    <link rel="stylesheet" href="common.css">
+    <link rel="stylesheet" href="chat.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 </head>
@@ -95,6 +95,30 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Files Aside -->
+       <aside class="files-aside" id="filesAside">
+            <div class="files-header">
+                <div class="tabs-container">
+                    <button id="filesTabBtn" class="tab-btn active" title="Files">
+                        Files
+                    </button>
+                    <button id="notesTabBtn" class="tab-btn" title="Notes">
+                        Notes
+                    </button>
+                </div>
+                <button id="toggleFilesBtn" class="files-toggle-btn" title="Toggle Files">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-3 7h3m-3 4h3"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="container" id="filesContainer">
+                <!-- Files will be populated here -->
+            </div>
+            <div class="container" id="noteContainer" style="display: none">
+            </div>
+        </aside>
     </div>
     
     <!-- Create Room Modal -->
