@@ -22,9 +22,25 @@ document.addEventListener('DOMContentLoaded', () => {
         filesTabBtn.addEventListener('click', () => switchAsideTab('files'));
         notesTabBtn.addEventListener('click', () => switchAsideTab('notes'));
     }
+
+    // Add click event listeners to file items
+    const fileItems = document.querySelectorAll('.file-item');
+    fileItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const fileName = item.querySelector('.file-name').textContent;
+            handleFileClick(fileName);
+        });
+    });
 });
 
 function toggleMemberNotes(headerElement) {
     const item = headerElement.closest('.member-note-item');
     item.classList.toggle('active');
+}
+
+function handleFileClick(fileName) {
+    console.log(`File clicked: ${fileName}`);
+    // TODO: Implement file download functionality
+    // This could call an API to fetch the file from the backend
+    // or trigger a download if the file URL is available
 }
