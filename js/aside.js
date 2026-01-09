@@ -160,18 +160,60 @@ async function handleFileDownload(event, fileName) {
     
     try {
         const file = filesData.find(f => f.name === fileName);
-        if (file && file.downloadUrl) {
-            // Create temporary link and trigger download
-            const a = document.createElement('a');
-            a.href = file.downloadUrl;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+        if (file) {
+            // Check if it's an image - open in modal instead of downloading
+            if (file.contentType && file.contentType.startsWith('image/')) {
+                openImageModal(file.downloadUrl, fileName);
+            } else if (file.downloadUrl) {
+                // Create temporary link and trigger download
+                const a = document.createElement('a');
+                a.href = file.downloadUrl;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
         }
     } catch (error) {
         console.error('Error downloading file:', error);
         alert('Failed to download file');
+    }
+}
+
+function openImageModal(imageUrl, fileName) {
+    // Create modal if it doesn't exist
+    let modal = document.getElementById('imageViewModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'imageViewModal';
+        modal.className = 'note-modal';
+        modal.innerHTML = `
+            <div class="note-modal-content" style="max-width: 90vw; max-height: 90vh;">
+                <div class="note-modal-header">
+                    <h4 id="imageModalTitle"></h4>
+                    <button class="icon-btn-small" onclick="closeImageModal()" title="Close">×</button>
+                </div>
+                <div class="note-modal-body" style="text-align: center; overflow: auto;">
+                    <img id="imageModalImg" style="max-width: 100%; max-height: 70vh; object-fit: contain;" />
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) closeImageModal();
+        });
+    }
+    
+    document.getElementById('imageModalTitle').textContent = fileName;
+    document.getElementById('imageModalImg').src = imageUrl;
+    modal.style.display = 'flex';
+}
+
+function closeImageModal() {
+    const modal = document.getElementById('imageViewModal');
+    if (modal) {
+        modal.style.display = 'none';
     }
 }
 
@@ -284,6 +326,9 @@ function renderNotesList() {
     const userNotesContainer = document.querySelector('.user_notes');
     if (!userNotesContainer) return;
 
+    // Clear existing content
+    userNotesContainer.innerHTML = '';
+
     // Group notes by username
     const notesByUser = {};
     notesData.forEach(note => {
@@ -293,23 +338,41 @@ function renderNotesList() {
         notesByUser[note.username].push(note);
     });
 
-    // Clear existing member note items (except the template structure)
-    const existingItems = userNotesContainer.querySelectorAll('.member-note-item');
-    existingItems.forEach(item => item.remove());
+    // Render "Your Notes" section first
+    const yourNotesTitle = document.createElement('h4');
+    yourNotesTitle.className = 'section-title';
+    yourNotesTitle.textContent = 'Your Notes';
+    userNotesContainer.appendChild(yourNotesTitle);
 
-    // Render current user's notes first
     if (currentUsername && notesByUser[currentUsername]) {
         const myItem = createMemberNoteItem(currentUsername, notesByUser[currentUsername], true);
         userNotesContainer.appendChild(myItem);
+    } else if (currentUsername) {
+        // Show empty state for current user
+        const myItem = createMemberNoteItem(currentUsername, [], true);
+        userNotesContainer.appendChild(myItem);
     }
 
-    // Render other users' notes
-    Object.keys(notesByUser).forEach(username => {
-        if (username !== currentUsername) {
+    // Check if there are other users with notes
+    const otherUsers = Object.keys(notesByUser).filter(username => username !== currentUsername);
+    
+    if (otherUsers.length > 0) {
+        // Add separator and "Other Members' Notes" title
+        const separator = document.createElement('div');
+        separator.style.cssText = 'height: 1px; background: var(--border-color); margin: 20px 0 10px 0;';
+        userNotesContainer.appendChild(separator);
+
+        const otherNotesTitle = document.createElement('h4');
+        otherNotesTitle.className = 'section-title';
+        otherNotesTitle.textContent = "Other Members' Notes";
+        userNotesContainer.appendChild(otherNotesTitle);
+
+        // Render other users' notes
+        otherUsers.forEach(username => {
             const item = createMemberNoteItem(username, notesByUser[username], false);
             userNotesContainer.appendChild(item);
-        }
-    });
+        });
+    }
 }
 
 function createMemberNoteItem(username, notes, isCurrentUser) {
@@ -322,19 +385,10 @@ function createMemberNoteItem(username, notes, isCurrentUser) {
 
     const nameSpan = document.createElement('span');
     nameSpan.className = 'member-name';
-    nameSpan.textContent = isCurrentUser ? 'Me (You)' : username;
+    nameSpan.textContent = isCurrentUser ? `${username} (You)` : `${username}'s Notes`;
 
     const headerActions = document.createElement('div');
     headerActions.className = 'header-actions';
-
-    if (isCurrentUser) {
-        const addBtn = document.createElement('button');
-        addBtn.className = 'add-note-btn';
-        addBtn.textContent = '+';
-        addBtn.title = 'Save note';
-        addBtn.onclick = function(e) { saveCurrentNote(e); };
-        headerActions.appendChild(addBtn);
-    }
 
     const chevron = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     chevron.setAttribute('class', 'chevron');
@@ -358,10 +412,17 @@ function createMemberNoteItem(username, notes, isCurrentUser) {
         notesList.id = 'myNotesList';
     }
 
-    notes.forEach(note => {
-        const noteEntry = createNoteEntry(note, isCurrentUser);
-        notesList.appendChild(noteEntry);
-    });
+    if (notes.length === 0 && !isCurrentUser) {
+        const emptyMsg = document.createElement('p');
+        emptyMsg.style.cssText = 'padding: 10px; color: var(--medium-teal); font-size: 13px; text-align: center;';
+        emptyMsg.textContent = 'No notes yet';
+        notesList.appendChild(emptyMsg);
+    } else {
+        notes.forEach(note => {
+            const noteEntry = createNoteEntry(note, isCurrentUser);
+            notesList.appendChild(noteEntry);
+        });
+    }
 
     item.appendChild(header);
     item.appendChild(notesList);
@@ -447,6 +508,18 @@ document.addEventListener('DOMContentLoaded', () => {
         fileSortSelect.addEventListener('change', applyFiltersAndSort);
     }
 
+    // Add save button to note writing area
+    const writingDiv = document.querySelector('.writing');
+    if (writingDiv && !document.getElementById('saveNoteBtn')) {
+        const saveBtn = document.createElement('button');
+        saveBtn.id = 'saveNoteBtn';
+        saveBtn.className = 'btn-primary';
+        saveBtn.style.cssText = 'margin-top: 10px; width: 100%;';
+        saveBtn.textContent = 'Save Note';
+        saveBtn.onclick = function(e) { saveCurrentNote(e); };
+        writingDiv.appendChild(saveBtn);
+    }
+
     // Initial render
     renderFilesList();
     renderNotesList();
@@ -466,9 +539,12 @@ async function saveCurrentNote(event) {
 
     const textarea = document.querySelector('.note_taker');
     const noteText = textarea.value.trim();
-    const saveBtn = document.querySelector('.add-note-btn');
+    const saveBtn = document.getElementById('saveNoteBtn');
 
-    if (!noteText || !currentRoom || !stompClient) return;
+    if (!noteText || !currentRoom || !stompClient) {
+        if (!noteText) alert('Please enter some text for your note');
+        return;
+    }
 
     if (currentEditElement) {
         // Update existing note
@@ -483,8 +559,9 @@ async function saveCurrentNote(event) {
         }));
 
         currentEditElement = null;
-        saveBtn.textContent = '+';
-        saveBtn.title = 'Save Note';
+        if (saveBtn) {
+            saveBtn.textContent = 'Save Note';
+        }
     } else {
         // Create new note
         stompClient.send(`/app/rooms/${currentRoom.id}/note`, {}, JSON.stringify({
@@ -523,15 +600,16 @@ function editNote(btnElement) {
     const entry = btnElement.closest('.note-entry');
     const text = entry.querySelector('.note-text').textContent;
     const textarea = document.querySelector('.note_taker');
-    const saveBtn = document.querySelector('.add-note-btn');
+    const saveBtn = document.getElementById('saveNoteBtn');
 
     currentEditElement = entry;
 
     textarea.value = text;
     textarea.focus();
 
-    saveBtn.textContent = '✓';
-    saveBtn.title = 'Update Note';
+    if (saveBtn) {
+        saveBtn.textContent = 'Update Note';
+    }
 
     textarea.scrollTop = 0;
 }
@@ -547,7 +625,10 @@ async function deleteNote(btnElement) {
     if (currentEditElement === entry) {
         currentEditElement = null;
         document.querySelector('.note_taker').value = '';
-        document.querySelector('.add-note-btn').textContent = '+';
+        const saveBtn = document.getElementById('saveNoteBtn');
+        if (saveBtn) {
+            saveBtn.textContent = 'Save Note';
+        }
     }
 
     stompClient.send(`/app/rooms/${currentRoom.id}/note`, {}, JSON.stringify({
