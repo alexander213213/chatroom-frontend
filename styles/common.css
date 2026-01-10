@@ -76,7 +76,7 @@ body {
 }
 
 .icon-btn {
-    background: transparent;
+    /* background: transparent; */
     border: none;
     cursor: pointer;
     padding: 8px;
