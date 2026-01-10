@@ -426,7 +426,8 @@ async function sendMessage() {
     const input = document.getElementById('messageInput');
     const content = input.value.trim();
     
-    if (!content || !currentRoom || !stompClient) return;
+    // Allow sending if there's either content OR files
+    if ((!content && chatMessageFiles.length === 0) || !currentRoom || !stompClient) return;
     
     if (editingMessageId) {
         // Update message
@@ -439,20 +440,23 @@ async function sendMessage() {
         
         editingMessageId = null;
     } else {
-        // New message
-        const message = {
-            username: currentUsername,
-            content: content,
-            type: 'POST'
-        };
-        
-        if (replyToMessage) {
-            message.replyTo = replyToMessage;
+        // Only send a message if there's text content
+        // Files will be uploaded separately
+        if (content) {
+            const message = {
+                username: currentUsername,
+                content: content,
+                type: 'POST'
+            };
+            
+            if (replyToMessage) {
+                message.replyTo = replyToMessage;
+            }
+            
+            stompClient.send(`/app/rooms/${currentRoom.id}/message`, {}, JSON.stringify(message));
         }
         
-        stompClient.send(`/app/rooms/${currentRoom.id}/message`, {}, JSON.stringify(message));
-        
-        // After sending message, upload files if any
+        // Upload files if any (works with or without message)
         if (chatMessageFiles.length > 0) {
             await uploadChatFiles();
         }
