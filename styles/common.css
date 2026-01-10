@@ -42,7 +42,6 @@ body {
 .btn-primary {
     width: 100%;
     padding: 12px 24px;
-    /* background: linear-gradient(135deg, var(--teal) 0%, #6BB8AF 100%); */
     color: var(--new-violet);
     background: var(--new-light-green);
     border: 2px solid var(--new-violet);

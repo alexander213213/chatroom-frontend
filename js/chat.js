@@ -16,10 +16,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('token');
     const username = localStorage.getItem('username');
     
-    // if (!token || !username) {
-    //     window.location.href = 'login.html';
-    //     return;
-    // }
+    if (!token || !username) {
+        window.location.href = 'login.html';
+        return;
+    }
     
     currentUsername = username;
     document.getElementById('currentUsername').textContent = username;
