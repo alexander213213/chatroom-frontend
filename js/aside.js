@@ -83,9 +83,9 @@ async function loadRoomFiles(roomId) {
                 size: formatFileSize(file.size),
                 type: getFileType(file.filename),
                 category: getFileCategory(file.filename),
-                downloadUrl: file.downloadUrl,
-                uploadedAt: file.uploadedAt,
-                contentType: file.contentType
+                downloadUrl: file.download_url,
+                uploadedAt: file.uploaded_at,
+                contentType: file.content_type
             }));
             console.log(filesData)
             applyFiltersAndSort();
