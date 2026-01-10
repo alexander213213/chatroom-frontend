@@ -8,6 +8,22 @@
     --medium-teal: #6B8E8E;
     --light-gray: #E0E0E0;
     --white: #FFFFFF;
+
+    --new-violet: #6c5671;
+    --new-white: #fff7e4;
+    --new-peach: #ffe6c6;
+    --new-brown: #dea38b;
+    --new-black: #28282e;
+    --new-orange: #ffc384;
+    --new-green: #b0eb93;
+    --new-light-green: #E9F59D;
+    --new-dark-green: #87a889;
+    --new-grey: #d9c8bf; 
+}
+
+@font-face {
+    font-family: 'Pixellari';
+    src: url('../resources/font/Pixellari.ttf') format('truetype');
 }
 
 * {
@@ -17,17 +33,21 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: linear-gradient(135deg, var(--light-green) 0%, var(--teal) 100%);
+    /* font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; */
+    font-family: 'Pixellari';
+    background: linear-gradient(135deg, var(--new-orange) 50%, var(--new-brown) 100%);
     min-height: 100vh;
 }
 
 .btn-primary {
+    width: 100%;
     padding: 12px 24px;
-    background: linear-gradient(135deg, var(--teal) 0%, #6BB8AF 100%);
-    color: white;
-    border: none;
+    /* background: linear-gradient(135deg, var(--teal) 0%, #6BB8AF 100%); */
+    color: var(--new-violet);
+    background: var(--new-light-green);
+    border: 2px solid var(--new-violet);
     border-radius: 10px;
+    font-family: 'Pixellari';
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
@@ -41,10 +61,11 @@ body {
 
 .btn-secondary {
     padding: 12px 24px;
-    background: var(--light-gray);
-    color: var(--dark-teal);
+    background: var(--new-white);
+    color: var(--new-violet);
     border: none;
     border-radius: 10px;
+    font-family: 'Pixellari';
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
@@ -61,7 +82,7 @@ body {
     cursor: pointer;
     padding: 8px;
     border-radius: 8px;
-    color: var(--medium-teal);
+    color: var(--new-violet);
     transition: all 0.3s;
     display: flex;
     align-items: center;
@@ -69,8 +90,8 @@ body {
 }
 
 .icon-btn:hover {
-    background: var(--cream);
-    color: var(--dark-teal);
+    background: var(--new-white);
+    color: var(--new-brown);
 }
 
 .icon-btn-small {
@@ -92,7 +113,7 @@ body {
 
 .input-group label {
     display: block;
-    color: var(--dark-teal);
+    color: var(--new-violet);
     font-weight: 500;
     margin-bottom: 8px;
     font-size: 14px;
@@ -101,16 +122,20 @@ body {
 .input-group input {
     width: 100%;
     padding: 12px 16px;
-    border: 2px solid var(--light-gray);
+    border: 2px solid var(--new-brown);
     border-radius: 10px;
+    font-family: 'Pixellari';
+    color: var(--new-violet);
     font-size: 15px;
     transition: all 0.3s;
 }
 
 .input-group input:focus {
     outline: none;
-    border-color: var(--teal);
-    background: #F9FFFE;
+    border-color: var(--new-brown);
+    /* background: #F9FFFE; */
+    color: var(--new-white);
+    background: var(--new-brown);
 }
 
 .error-message {
@@ -146,7 +171,7 @@ body {
 }
 
 .modal-content {
-    background: white;
+    background: var(--new-orange);
     border-radius: 15px;
     width: 90%;
     max-width: 500px;
@@ -155,14 +180,14 @@ body {
 
 .modal-header {
     padding: 20px 24px;
-    border-bottom: 1px solid var(--light-gray);
+    border-bottom: 1px solid var(--new-orange);
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .modal-header h3 {
-    color: var(--dark-teal);
+    color: var(--new-violet);
     font-size: 20px;
 }
 
@@ -170,7 +195,7 @@ body {
     background: none;
     border: none;
     font-size: 28px;
-    color: var(--medium-teal);
+    color: var(--new-violet);
     cursor: pointer;
     line-height: 1;
 }
@@ -181,7 +206,7 @@ body {
 
 .modal-footer {
     padding: 16px 24px;
-    border-top: 1px solid var(--light-gray);
+    border-top: 1px solid var(--new-brown);
     display: flex;
     justify-content: flex-end;
     gap: 12px;
