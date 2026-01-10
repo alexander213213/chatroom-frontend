@@ -430,13 +430,15 @@ function renderNotesList() {
     // Clear existing content
     userNotesContainer.innerHTML = '';
 
-    // Group notes by username
+    // Group notes by username (case-insensitive grouping)
     const notesByUser = {};
     notesData.forEach(note => {
-        if (!notesByUser[note.username]) {
-            notesByUser[note.username] = [];
+        // Use the original case for display, but group case-insensitively
+        const usernameKey = note.username;
+        if (!notesByUser[usernameKey]) {
+            notesByUser[usernameKey] = [];
         }
-        notesByUser[note.username].push(note);
+        notesByUser[usernameKey].push(note);
     });
 
     // Render "Your Notes" section first
@@ -445,8 +447,13 @@ function renderNotesList() {
     yourNotesTitle.textContent = 'Your Notes';
     userNotesContainer.appendChild(yourNotesTitle);
 
-    if (currentUsername && notesByUser[currentUsername]) {
-        const myItem = createMemberNoteItem(currentUsername, notesByUser[currentUsername], true);
+    // Find current user's notes (case-insensitive)
+    const currentUserNotes = Object.keys(notesByUser).find(
+        username => username.toLowerCase() === currentUsername.toLowerCase()
+    );
+
+    if (currentUserNotes && notesByUser[currentUserNotes]) {
+        const myItem = createMemberNoteItem(currentUserNotes, notesByUser[currentUserNotes], true);
         userNotesContainer.appendChild(myItem);
     } else if (currentUsername) {
         // Show empty state for current user
@@ -454,8 +461,10 @@ function renderNotesList() {
         userNotesContainer.appendChild(myItem);
     }
 
-    // Check if there are other users with notes
-    const otherUsers = Object.keys(notesByUser).filter(username => username !== currentUsername);
+    // Check if there are other users with notes (case-insensitive comparison)
+    const otherUsers = Object.keys(notesByUser).filter(
+        username => username.toLowerCase() !== currentUsername.toLowerCase()
+    );
     
     if (otherUsers.length > 0) {
         // Add separator and "Other Members' Notes" title
