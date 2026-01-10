@@ -77,7 +77,6 @@ async function loadRoomFiles(roomId) {
         const response = await api.request(`/api/files/rooms/${roomId}/attachments`);
         if (response.ok) {
             const data = await response.json();
-            console.log(data)
             filesData = data.attachments.map(file => ({
                 name: file.filename,
                 size: formatFileSize(file.size),
@@ -87,7 +86,6 @@ async function loadRoomFiles(roomId) {
                 uploadedAt: file.uploaded_at,
                 contentType: file.content_type
             }));
-            console.log(filesData)
             applyFiltersAndSort();
         }
     } catch (error) {
