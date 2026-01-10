@@ -9,7 +9,7 @@ let editingMessageId = null;
 let emojiPickerTarget = null;
 let timestampUpdateInterval = null;
 
-const emojis = ['👍', '❤️', '😂', '😮', '😢', '😭', '🎉', '🔥', '👀', '💯', '✨', '🚀'];
+const emojis = ['👍', '❤️', '😂', '😮', '😢', '😭', '🎉', '🔥', '💀', '💯', '✨', '🚀'];
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Check authentication
@@ -422,7 +422,7 @@ function scrollToBottom() {
     container.scrollTop = container.scrollHeight;
 }
 
-function sendMessage() {
+async function sendMessage() {
     const input = document.getElementById('messageInput');
     const content = input.value.trim();
     
@@ -451,11 +451,68 @@ function sendMessage() {
         }
         
         stompClient.send(`/app/rooms/${currentRoom.id}/message`, {}, JSON.stringify(message));
+        
+        // After sending message, upload files if any
+        if (chatMessageFiles.length > 0) {
+            await uploadChatFiles();
+        }
     }
     
     input.value = '';
     cancelReply();
     sendTypingStatus(false);
+}
+
+async function uploadChatFiles() {
+    if (!currentRoom || chatMessageFiles.length === 0) return;
+    
+    const sendBtn = document.getElementById('sendBtn');
+    const originalBtnContent = sendBtn.innerHTML;
+    
+    // Show upload indicator
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+            <path d="M12 2 A10 10 0 0 1 22 12" stroke-linecap="round">
+                <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
+            </path>
+        </svg>
+    `;
+    
+    try {
+        // Upload files sequentially
+        for (const file of chatMessageFiles) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const response = await fetch(`${CONFIG.API_BASE}/api/files/rooms/${currentRoom.id}/attachments`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: formData
+            });
+            
+            if (!response.ok) {
+                console.error(`Failed to upload ${file.name}`);
+            }
+        }
+        
+        // Reload files list
+        await loadRoomFiles(currentRoom.id);
+        
+    } catch (error) {
+        console.error('Error uploading files:', error);
+        alert('Some files failed to upload');
+    } finally {
+        // Clear files and restore button
+        chatMessageFiles = [];
+        updateChatFilePreview();
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = originalBtnContent;
+    }
 }
 
 function handleTyping() {
@@ -834,12 +891,9 @@ function handleTypingIndicator(data) {
 let chatMessageFiles = [];
 
 function handleChatFileUpload(files) {
+    // Store actual File objects, not just metadata
     Array.from(files).forEach(file => {
-        chatMessageFiles.push({
-            name: file.name,
-            size: (file.size / 1024).toFixed(2) + ' KB',
-            type: file.type
-        });
+        chatMessageFiles.push(file);
     });
     updateChatFilePreview();
 }

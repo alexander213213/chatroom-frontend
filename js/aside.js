@@ -66,6 +66,37 @@ function getFileCategory(filename) {
     return 'Other';
 }
 
+function formatFileTimestamp(timestamp) {
+    if (!timestamp) return '';
+    
+    const date = new Date(timestamp);
+    if (isNaN(date.getTime())) return '';
+    
+    const now = new Date();
+    const diff = now - date;
+    
+    // Less than 1 hour ago
+    if (diff < 3600000) {
+        const minutes = Math.floor(diff / 60000);
+        return minutes <= 1 ? 'Just now' : `${minutes}m ago`;
+    }
+    
+    // Less than 24 hours ago
+    if (diff < 86400000) {
+        const hours = Math.floor(diff / 3600000);
+        return `${hours}h ago`;
+    }
+    
+    // Less than 7 days ago
+    if (diff < 604800000) {
+        const days = Math.floor(diff / 86400000);
+        return `${days}d ago`;
+    }
+    
+    // Format as date
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 async function loadRoomFiles(roomId) {
     if (!roomId) {
         filesData = [];
@@ -145,7 +176,9 @@ function renderFilesList() {
             
             const fileSize = document.createElement('div');
             fileSize.className = 'file-size';
-            fileSize.textContent = file.size;
+            // Add timestamp to file size display
+            const timestamp = formatFileTimestamp(file.uploadedAt);
+            fileSize.textContent = timestamp ? `${file.size} • ${timestamp}` : file.size;
             
             fileInfo.appendChild(fileName);
             fileInfo.appendChild(fileSize);
@@ -188,7 +221,7 @@ function renderFilesList() {
             // Add click handler to the file item
             fileItem.addEventListener('click', function(e) {
                 console.log('File item clicked:', file.name);
-                // Only trigger if not clicking on action buttonsevent
+                // Only trigger if not clicking on action buttons
                 if (!e.target.closest('.file-action-btn')) {
                     handleFileClick(file.name);
                 }
@@ -727,8 +760,6 @@ async function deleteNote(btnElement) {
 }
 
 function handleFileClick(fileName) {
-    // if (!currentRoom) return;
-    
     const file = filesData.find(f => f.name === fileName);
     if (!file) return;
     
@@ -750,8 +781,9 @@ function handleFileClick(fileName) {
 function handleIncomingNote(note) {
     if (!currentRoom || note.roomId != currentRoom.id) return;
 
-    if (note.type === 'POST') {
-        // Add new note
+    // Handle notes from REST endpoint (type: NONE) and WebSocket (type: POST/UPDATE/DELETE)
+    if (note.type === 'POST' || note.type === 'NONE') {
+        // Add new note or note from GET endpoint
         const exists = notesData.find(n => n.id === note.id);
         if (!exists) {
             notesData.push(note);
