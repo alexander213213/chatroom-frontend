@@ -17,7 +17,7 @@
 /* Sidebar */
 .sidebar {
     width: 300px;
-    background: linear-gradient(135deg, var(--chat-highlight) 0%, var(--chat-primary) 100%);
+    background: var(--chat-primary);
     display: flex;
     flex-direction: column;
     border-right: 1px solid rgba(255, 255, 255, 0.3);
@@ -141,6 +141,29 @@
     border-bottom: 2px solid var(--chat-accent);
     box-sizing: border-box;
     background: white;
+}
+
+#saveNoteBtn {
+    background: var(--chat-highlight);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 10px;
+    width: 100%;
+}
+
+#saveNoteBtn:hover {
+    background: var(--chat-primary);
+    transform: translateY(-1px);
+}
+
+#saveNoteBtn:active {
+    transform: translateY(0);
 }
 
 .note_taker {
@@ -352,10 +375,12 @@
     border-bottom: 2px solid transparent;
     cursor: pointer;
     color: var(--chat-primary);
-    font-weight: 500;
-    font-size: 13px;
+    font-weight: 600;
+    font-size: 14px;
     transition: all 0.2s;
     border-radius: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    letter-spacing: 0.3px;
 }
 
 .tab-btn:hover {
