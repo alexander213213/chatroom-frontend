@@ -3,271 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat - Chatroom</title>
+    <title>Chatroom</title>
+    <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="styles/common.css">
     <link rel="stylesheet" href="styles/chat.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 </head>
 <body>
-    <div class="chat-container">
-        <!-- Sidebar -->
-        <div class="sidebar">
+    <div class="app" id="app">
+        <!-- Rooms sidebar -->
+        <aside class="sidebar" id="sidebar" aria-label="Rooms">
             <div class="sidebar-header">
-                <h2>Chatrooms</h2>
-                <button id="createRoomBtn" class="icon-btn" title="Create Room">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
+                <div class="brand">
+                    <span class="brand-mark" aria-hidden="true">&gt;_</span>
+                    <span>Chatroom</span>
+                </div>
+                <button id="createRoomBtn" class="icon-btn on-dark" title="New room" aria-label="New room">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </button>
             </div>
-            
-            <div class="user-info">
-                <div class="user-avatar"></div>
-                <span id="currentUsername"></span>
-                <button id="logoutBtn" class="icon-btn" title="Logout">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
+
+            <div class="room-search">
+                <input id="roomSearch" class="input" type="search" placeholder="Find a room..." aria-label="Find a room">
+            </div>
+
+            <nav class="rooms-list" id="roomsList"></nav>
+
+            <div class="user-card">
+                <button id="profileBtn" class="user-card-main" title="Profile & avatar">
+                    <span id="myAvatar"></span>
+                    <span class="user-card-text">
+                        <span id="currentUsername" class="user-card-name"></span>
+                        <span class="conn-status" id="connStatus" data-state="connecting">Connecting...</span>
+                    </span>
                 </button>
-            </div>
-            
-            <div class="rooms-list" id="roomsList">
-                <!-- Rooms will be populated here -->
-            </div>
-        </div>
-        
-        <!-- Chat Area -->
-        <div class="chat-area">
-            <div class="chat-header">
-                <div class="chat-header-info">
-                    <h3 id="currentRoomName">Select a room</h3>
-                    <button id="roomMembersBtn" class="icon-btn" title="Members" style="display: none;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="9" cy="7" r="4"></circle>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                    </button>
-                    <button id="deleteRoomBtn" class="icon-btn" title="Delete Room" style="display: none;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="messages-container" id="messagesContainer">
-                <div class="no-room-selected">
-                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                    </svg>
-                    <p>Select a room to start chatting</p>
-                </div>
-            </div>
-            
-            <div class="typing-indicator" id="typingIndicator" style="display: none;"></div>
-            
-            <div class="message-input-container" id="messageInputContainer" style="display: none;">
-                <div class="reply-preview" id="replyPreview" style="display: none;">
-                    <span id="replyText"></span>
-                    <button id="cancelReply" class="icon-btn-small">×</button>
-                </div>
-
-                <!-- File Preview Area -->
-                <div class="message-file-preview" id="messageFilePreview" style="display: none;">
-                    <div class="preview-files" id="previewFiles"></div>
-                    <button class="btn-clear-files" onclick="clearMessageFiles()">Clear</button>
-                </div>
-                
-                <div class="message-input-wrapper" id="messageInputWrapper">
-                    <label for="chatFileUploadInput" class="file-upload-btn" title="Upload File">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                        </svg>
-                    </label>
-                    <input type="file" id="chatFileUploadInput" style="display: none;" multiple>
-                    <input 
-                        type="text" 
-                        id="messageInput" 
-                        placeholder="Type a message or drag files here..." 
-                        autocomplete="off"
-                    >
-                    <button id="sendBtn" class="btn-send">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="22" y1="2" x2="11" y2="13"></line>
-                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Files Aside -->
-       <aside class="files-aside" id="filesAside">
-            <div class="files-header">
-                <div class="tabs-container">
-                    <button id="notesTabBtn" class="tab-btn active" title="Notes">
-                        Notes
-                    </button>
-                    <button id="filesTabBtn" class="tab-btn" title="Files">
-                        Files
-                    </button>
-                </div>
-            </div>
-            <div class="container" id="noteContainer">
-                <div class="writing">
-                    <textarea class="note_taker" placeholder="Write your personal notes here..."></textarea>
-                </div>
-
-                <div class="user_notes">
-                    <h4 class="section-title">Member Notes</h4>
-
-                    <div class="member-note-item current-user-item active">
-                        <div class="member-header" onclick="toggleMemberNotes(this)">
-                            <span class="member-name">Me (You)</span>
-                            <div class="header-actions">
-                                <button class="add-note-btn" onclick="saveCurrentNote(event)" title="Save note">+</button>
-                                <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                            </div>
-                        </div>
-                        
-                        <div class="member-notes-list" id="myNotesList">
-                            <div class="note-entry user-note-entry">
-                                <span class="note-text">Yawerz</span>
-                                <div class="note-actions">
-                                    <button class="action-btn view" onclick="viewNote(this)" title="View">o</button>
-                                    <button class="action-btn edit" onclick="editNote(this)" title="Edit">^</button>
-                                    <button class="action-btn delete" onclick="deleteNote(this)" title="Delete">x</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="member-note-item">
-                        <div class="member-header" onclick="toggleMemberNotes(this)">
-                            <span class="member-name">User_Jeongyeon</span>
-                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                        </div>
-                        <div class="member-notes-list">
-                            <div class="note-entry">
-                                <span class="note-text">Meeting minutes from Tuesday </span>
-                                <div class="note-actions">
-                                    <button class="action-btn view" onclick="viewNote(this)" title="View">o</button>
-                                    <button class="action-btn edit" onclick="editNote(this)" title="Edit">^</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="member-note-item">
-                        <div class="member-header" onclick="toggleMemberNotes(this)">
-                            <span class="member-name">Nayeon</span>
-                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                        </div>
-                        <div class="member-notes-list">
-                            <div class="note-entry">
-                                <span class="note-text">POP POP POP POP POP POP POP </span>
-                                <div class="note-actions">
-                                    <button class="action-btn view" onclick="viewNote(this)" title="View">o</button>
-                                    <button class="action-btn edit" onclick="editNote(this)" title="Edit">^</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="container" id="filesContainer" style="display: none">
-                <!-- Files Controls -->
-                <div class="files-controls">
-                    <div class="files-control-top">
-                        <input type="text" id="fileSearchInput" placeholder="Search files..." class="file-search">
-                        <select id="fileSortSelect" class="file-sort">
-                            <option value="name">Sort by Name</option>
-                            <option value="size">Sort by Size</option>
-                            <option value="type">Sort by Type</option>
-                        </select>
-                    </div>
-                    <div class="files-control-bottom">
-                        <span class="file-count-badge" id="fileCountBadge">0 files</span>
-                    </div>
-                </div>
-
-                <!-- File Categories -->
-                <div class="files-list" id="filesList">
-                    <!-- Files grouped by category will be populated here -->
-                </div>
+                <button id="logoutBtn" class="icon-btn on-dark" title="Log out" aria-label="Log out">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </button>
             </div>
         </aside>
+
+        <!-- Conversation -->
+        <main class="chat" id="chat">
+            <header class="chat-header">
+                <button id="sidebarToggle" class="icon-btn only-mobile" aria-label="Show rooms">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                <div class="chat-title">
+                    <h1 id="currentRoomName">No room selected</h1>
+                    <span id="currentRoomMeta" class="chat-meta"></span>
+                </div>
+                <div class="chat-actions" id="roomActions" hidden>
+                    <button id="roomMembersBtn" class="icon-btn" title="Members" aria-label="Members">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </button>
+                    <button id="deleteRoomBtn" class="icon-btn danger" title="Delete room" aria-label="Delete room" hidden>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
+                    <button id="panelToggle" class="icon-btn" title="Notes & files" aria-label="Notes and files">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+                    </button>
+                </div>
+            </header>
+
+            <section class="messages" id="messagesContainer" aria-live="polite">
+                <div class="empty-state">
+                    <div class="empty-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <h2>Pick a room</h2>
+                    <p>Choose a room on the left, or create a new one to get started.</p>
+                </div>
+            </section>
+
+            <div class="typing-indicator" id="typingIndicator" aria-live="polite"></div>
+
+            <footer class="composer" id="messageInputContainer" hidden>
+                <div class="composer-context" id="replyPreview" hidden>
+                    <span id="replyText"></span>
+                    <button id="cancelReply" class="icon-btn" aria-label="Cancel">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+
+                <div class="composer-files" id="messageFilePreview" hidden></div>
+
+                <div class="composer-row" id="messageInputWrapper">
+                    <label for="chatFileUploadInput" class="icon-btn" title="Attach files" aria-label="Attach files">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                    </label>
+                    <input type="file" id="chatFileUploadInput" multiple hidden>
+                    <textarea id="messageInput" rows="1" maxlength="4000" placeholder="Write a message..." aria-label="Message"></textarea>
+                    <button id="sendBtn" class="btn btn-primary send-btn" aria-label="Send">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    </button>
+                </div>
+                <div class="composer-hint">
+                    <span><kbd>Enter</kbd> send · <kbd>Shift</kbd>+<kbd>Enter</kbd> new line · <kbd>Esc</kbd> cancel</span>
+                    <span id="charCount"></span>
+                </div>
+            </footer>
+
+            <div class="drop-overlay" id="dropOverlay" hidden>Drop files to attach</div>
+        </main>
+
+        <!-- Notes & files panel -->
+        <aside class="panel" id="filesAside" aria-label="Notes and files">
+            <div class="tabs" role="tablist">
+                <button id="notesTabBtn" class="tab active" role="tab" aria-selected="true">Notes</button>
+                <button id="filesTabBtn" class="tab" role="tab" aria-selected="false">Files <span class="badge" id="fileCountBadge">0</span></button>
+                <button id="panelClose" class="icon-btn only-narrow" aria-label="Close panel">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <div class="panel-body" id="noteContainer">
+                <div class="note-editor">
+                    <textarea id="noteInput" class="input" rows="4" maxlength="4000" placeholder="Write a note for this room..." aria-label="Note"></textarea>
+                    <div class="note-editor-actions">
+                        <button id="cancelNoteEdit" class="btn btn-sm" hidden>Cancel</button>
+                        <button id="saveNoteBtn" class="btn btn-primary btn-sm">Save note</button>
+                    </div>
+                </div>
+                <div class="notes-list" id="notesList"></div>
+            </div>
+
+            <div class="panel-body" id="filesContainer" hidden>
+                <div class="files-controls">
+                    <input type="search" id="fileSearchInput" class="input" placeholder="Search files..." aria-label="Search files">
+                    <div class="files-controls-row">
+                        <select id="fileSortSelect" class="input" aria-label="Sort files">
+                            <option value="date">Newest first</option>
+                            <option value="name">Name</option>
+                            <option value="size">Size</option>
+                            <option value="type">Type</option>
+                        </select>
+                        <button id="refreshFilesBtn" class="icon-btn" title="Refresh" aria-label="Refresh files">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                        </button>
+                        <label for="panelUploadInput" class="btn btn-sm" title="Upload files">Upload</label>
+                        <input type="file" id="panelUploadInput" multiple hidden>
+                    </div>
+                </div>
+                <div class="files-list" id="filesList"></div>
+            </div>
+        </aside>
+        <div class="scrim" id="scrim" hidden></div>
     </div>
 
-    <!-- Note View Modal -->
-    <div id="noteViewModal" class="note-modal" style="display: none;">
-        <div class="note-modal-content">
-            <div class="note-modal-header">
-                <h4>Note Details</h4>
-                <button class="icon-btn-small" onclick="closeNoteModal()" title="Close">×</button>
-            </div>
-            <div class="note-modal-body" id="noteModalText"></div>
-        </div>
-    </div>
-    
-    <!-- Create Room Modal -->
+    <!-- Create room -->
     <div id="createRoomModal" class="modal">
-        <div class="modal-content">
+        <form class="modal-content" id="createRoomForm" role="dialog" aria-modal="true" aria-labelledby="createRoomTitle">
             <div class="modal-header">
-                <h3>Create New Room</h3>
-                <button class="modal-close">&times;</button>
+                <h3 id="createRoomTitle">New room</h3>
+                <button type="button" class="icon-btn" data-close aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
             </div>
             <div class="modal-body">
-                <div class="input-group">
-                    <label for="roomName">Room Name</label>
-                    <input type="text" id="roomName" placeholder="Enter room name">
+                <div class="field">
+                    <label for="roomName">Room name</label>
+                    <input class="input" type="text" id="roomName" maxlength="100" placeholder="e.g. design-team" required>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModal('createRoomModal')">Cancel</button>
-                <button class="btn-primary" id="confirmCreateRoom">Create</button>
+                <button type="button" class="btn" data-close>Cancel</button>
+                <button type="submit" class="btn btn-primary" id="confirmCreateRoom">Create room</button>
             </div>
-        </div>
+        </form>
     </div>
-    
-    <!-- Invite Members Modal -->
+
+    <!-- Members -->
     <div id="inviteMembersModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="membersTitle">
             <div class="modal-header">
-                <h3>Room Members</h3>
-                <button class="modal-close">&times;</button>
+                <h3 id="membersTitle">Members</h3>
+                <button class="icon-btn" data-close aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
             </div>
             <div class="modal-body">
-                <div id="membersList" class="members-list"></div>
-                <div class="input-group" style="margin-top: 20px;">
-                    <label for="inviteUsername">Invite User</label>
-                    <input type="text" id="inviteUsername" placeholder="Enter username">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModal('inviteMembersModal')">Close</button>
-                <button class="btn-primary" id="confirmInvite">Invite</button>
+                <ul id="membersList" class="members-list"></ul>
+                <form class="invite-form" id="inviteForm">
+                    <label for="inviteUsername">Invite people</label>
+                    <div class="invite-row">
+                        <input class="input" type="text" id="inviteUsername" placeholder="username, another_user">
+                        <button type="submit" class="btn btn-primary" id="confirmInvite">Invite</button>
+                    </div>
+                    <p class="hint">Separate several usernames with commas.</p>
+                </form>
             </div>
         </div>
     </div>
-    
-    <!-- Emoji Picker -->
-    <div id="emojiPicker" class="emoji-picker" style="display: none;">
-        <div class="emoji-grid" id="emojiGrid"></div>
+
+    <!-- Profile -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+            <div class="modal-header">
+                <h3 id="profileTitle">Your profile</h3>
+                <button class="icon-btn" data-close aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body profile-body">
+                <span id="profileAvatar"></span>
+                <strong id="profileName"></strong>
+                <p class="hint">Images only, up to 10 MB.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="removeAvatarBtn">Remove avatar</button>
+                <label for="avatarInput" class="btn btn-primary">Upload avatar</label>
+                <input type="file" id="avatarInput" accept="image/*" hidden>
+            </div>
+        </div>
     </div>
-    
+
+    <!-- Note / image viewer -->
+    <div id="viewerModal" class="modal">
+        <div class="modal-content wide" role="dialog" aria-modal="true" aria-labelledby="viewerTitle">
+            <div class="modal-header">
+                <h3 id="viewerTitle"></h3>
+                <div class="viewer-actions">
+                    <button class="btn btn-sm" id="viewerDownload" hidden>Download</button>
+                    <button class="icon-btn" data-close aria-label="Close">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body viewer-body" id="viewerBody"></div>
+        </div>
+    </div>
+
+    <!-- Reaction picker -->
+    <div id="emojiPicker" class="emoji-picker" role="menu" hidden></div>
+
     <script src="js/config.js"></script>
     <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
     <script src="js/chat.js"></script>
     <script src="js/aside.js"></script>
 </body>
