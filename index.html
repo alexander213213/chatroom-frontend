@@ -2,18 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chatroom</title>
-</head>
-<body>
     <script>
-        // Check if user is authenticated
-        const token = localStorage.getItem('token');
-        if (token) {
-            window.location.href = 'chat.html';
-        } else {
-            window.location.href = 'login.html';
-        }
+        window.location.replace(localStorage.getItem('token') ? 'chat.html' : 'login.html');
     </script>
-</body>
+</head>
+<body></body>
 </html>
