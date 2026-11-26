@@ -98,6 +98,12 @@ const ui = {
         return ui.avatarVersions[username] || 0;
     },
 
+    // The backend sends LocalDateTime in UTC with no zone suffix; mark it so browsers don't read it as local time
+    utc(value) {
+        if (!value) return null;
+        return /(Z|[+-]\d\d:?\d\d)$/.test(value) ? value : `${value}Z`;
+    },
+
     formatSize(bytes) {
         if (bytes == null) return '';
         if (bytes < 1024) return `${bytes} B`;

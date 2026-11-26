@@ -221,7 +221,7 @@ const panel = {
                     name: f.filename,
                     ext,
                     size: f.size,
-                    uploadedAt: f.uploaded_at,
+                    uploadedAt: ui.utc(f.uploaded_at),
                     url: f.download_url,
                     isImage: f.is_image ?? (f.content_type || '').startsWith('image/'),
                     category: Object.keys(FILE_CATEGORIES).find(c => FILE_CATEGORIES[c].includes(ext)) || 'Other'

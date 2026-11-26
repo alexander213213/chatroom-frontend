@@ -391,7 +391,7 @@ function normalizeMessage(raw) {
         id: raw.id,
         username: raw.username,
         content: raw.content ?? '',
-        timestamp: raw.timestamp || null,
+        timestamp: ui.utc(raw.timestamp),
         replyToId: reply && typeof reply === 'object' ? reply.id : reply ?? null,
         replyToContent: reply && typeof reply === 'object' ? reply.content : null,
         reactions: (raw.reactions || []).map(r => ({ username: r.username, emoji: r.emoji }))
